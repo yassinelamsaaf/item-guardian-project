@@ -1,88 +1,100 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Box, List, MessageCircle, Settings, Globe } from "lucide-react";
+import { Home, Shield, Search, MessageSquare, Settings } from "lucide-react";
+
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+
+// Menu items
+const items = [
+  {
+    title: "Home",
+    path: "/",
+    icon: Home,
+  },
+  {
+    title: "My Items",
+    path: "/my-items",
+    icon: Shield,
+  },
+  {
+    title: "Found Items",
+    path: "/listed-items",
+    icon: Search,
+  },
+  {
+    title: "Chat",
+    path: "/chat",
+    icon: MessageSquare,
+  },
+  {
+    title: "Settings",
+    path: "/settings",
+    icon: Settings,
+  },
+];
 
 const AppSidebar = () => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
-  const menuItems = [
-    { icon: Home, label: "Home", path: "/" },
-    { icon: Box, label: "My Items", path: "/my-items" },
-    { icon: List, label: "Listed Items", path: "/listed-items" },
-    { icon: MessageCircle, label: "Chat", path: "/chat" },
-    { icon: Settings, label: "Settings", path: "/settings" },
-  ];
-
-  const handleLanguageChange = () => {
-    // Language change functionality would go here
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .toUpperCase();
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-border">
-        <div className="flex items-center gap-2 px-4">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-found-green">
-            <Box size={18} className="text-white" />
-          </div>
-          <span className="font-semibold text-lg">Lost & Found</span>
-        </div>
-        <div className="md:hidden">
-          <SidebarTrigger />
-        </div>
+    <Sidebar className="border-r">
+      <SidebarHeader className="h-16 flex items-center justify-center border-b">
+        <h1 className="text-xl font-bold">Lost & Found</h1>
       </SidebarHeader>
-
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton asChild active={location.pathname === item.path}>
-                    <Link to={item.path} className="flex items-center gap-3">
-                      <item.icon size={20} />
-                      <span>{item.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarMenu>
+          {items.map((item) => {
+            const isCurrentPath = location.pathname === item.path || 
+              (item.path !== "/" && location.pathname.startsWith(item.path));
+            
+            return (
+              <SidebarMenuItem key={item.path}>
+                <SidebarMenuButton asChild isActive={isCurrentPath}>
+                  <Link to={item.path}>
+                    <item.icon className="h-5 w-5 mr-2" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
       </SidebarContent>
-
-      <SidebarFooter className="border-t border-border p-4">
-        <div className="space-y-4">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start gap-2"
-            onClick={handleLanguageChange}
-          >
-            <Globe size={18} />
-            <span>Language</span>
-          </Button>
-          <Button 
-            variant="destructive" 
-            className="w-full justify-start gap-2"
-            onClick={logout}
-          >
-            Logout
+      <SidebarFooter className="border-t p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Avatar className="h-8 w-8 mr-2">
+              <AvatarFallback>
+                {user ? getInitials(user.name) : "?"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-sm">
+              <p className="font-medium">{user?.name}</p>
+              <p className="text-xs text-gray-500">{user?.email}</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={logout}>
+            Log out
           </Button>
         </div>
       </SidebarFooter>
