@@ -29,7 +29,7 @@ const items = [
   },
   {
     title: "Found Items",
-    path: "/listed-items",
+    path: "/found-items",
     icon: Search,
   },
   {

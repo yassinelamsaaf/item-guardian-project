@@ -1,0 +1,207 @@
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+
+interface AddFoundItemFormProps {
+  onSubmit: (data: any) => void;
+  onCancel: () => void;
+}
+
+const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    category: "",
+    location: "",
+    image: null as File | null,
+    contact: {
+      name: "",
+      phone: "",
+      email: "",
+    }
+  });
+  const [previewUrl, setPreviewUrl] = useState("");
+  const { toast } = useToast();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    if (name.startsWith("contact.")) {
+      const contactField = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        contact: {
+          ...prev.contact,
+          [contactField]: value
+        }
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, image: file }));
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!formData.name || !formData.category) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Generate mock ID and date for the new item
+    const newItem = {
+      ...formData,
+      id: `item-${Date.now()}`,
+      status: "found" as const,
+      dateAdded: new Date().toISOString(),
+      image: previewUrl || "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=3374&auto=format&fit=crop",
+    };
+    
+    onSubmit(newItem);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Item Name *</Label>
+          <Input
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="category">Category *</Label>
+          <Select 
+            onValueChange={(value) => handleSelectChange("category", value)}
+            required
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Electronics">Electronics</SelectItem>
+              <SelectItem value="Accessories">Accessories</SelectItem>
+              <SelectItem value="Bags">Bags</SelectItem>
+              <SelectItem value="Clothing">Clothing</SelectItem>
+              <SelectItem value="Documents">Documents</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            name="description"
+            rows={3}
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Color, brand, identifying marks..."
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="location">Where Found</Label>
+          <Input
+            id="location"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="Location where you found this item"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Contact Information</Label>
+          <div className="space-y-2">
+            <Input
+              name="contact.name"
+              value={formData.contact.name}
+              onChange={handleChange}
+              placeholder="Your name"
+            />
+            <Input
+              name="contact.phone"
+              value={formData.contact.phone}
+              onChange={handleChange}
+              placeholder="Your phone number"
+            />
+            <Input
+              name="contact.email"
+              value={formData.contact.email}
+              onChange={handleChange}
+              placeholder="Your email"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="image">Upload Image</Label>
+          <Input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="cursor-pointer"
+          />
+          
+          {previewUrl && (
+            <div className="mt-2">
+              <img 
+                src={previewUrl} 
+                alt="Preview" 
+                className="max-h-40 rounded-md object-cover"
+              />
+            </div>
+          )}
+        </div>
+      </CardContent>
+      
+      <CardFooter className="flex justify-between">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
+          Report Found Item
+        </Button>
+      </CardFooter>
+    </form>
+  );
+};
+
+export default AddFoundItemForm;
