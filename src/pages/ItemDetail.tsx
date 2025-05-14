@@ -6,13 +6,14 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Phone, Mail, MapPin, Shield, MessageSquare } from "lucide-react";
-import { mockItems } from "@/data/mockData";
 import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import QRCode from "@/components/QRCode";
 import ItemCard from "@/components/ItemCard";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { getItemById, getItems } from "@/utils/storage";
+import { useNavigate } from "react-router-dom";
 
 const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,19 +21,26 @@ const ItemDetail = () => {
   const [similarItems, setSimilarItems] = useState<Item[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const isOwner = item?.userId === user?.id;
   const isProtected = item?.status === "protected";
   
   useEffect(() => {
     if (id) {
-      // Find the item by ID
-      const foundItem = mockItems.find(item => item.id === id) || null;
-      setItem(foundItem);
+      // Find the item by ID using the utility function
+      const foundItem = getItemById(id);
+      setItem(foundItem || null);
       
       // Find similar items (same name, excluding current)
       if (foundItem) {
-        const similar = mockItems.filter(i => 
+        // Combine all items from all storage types
+        const protectedItems = getItems("protected");
+        const foundItems = getItems("found");
+        const lostItems = getItems("lost");
+        const allItems = [...protectedItems, ...foundItems, ...lostItems];
+        
+        const similar = allItems.filter(i => 
           i.id !== id && 
           i.name.toLowerCase() === foundItem.name.toLowerCase()
         );
@@ -42,10 +50,15 @@ const ItemDetail = () => {
   }, [id]);
   
   const handleContactOwner = () => {
-    toast({
-      title: "Contact initiated",
-      description: "A chat has been created with this item's finder.",
-    });
+    if (item) {
+      // Navigate to chat with the item owner
+      navigate(`/chat/${item.userId}?itemId=${item.id}`);
+      
+      toast({
+        title: "Contact initiated",
+        description: "A chat has been created with this item's finder.",
+      });
+    }
   };
   
   if (!item) {

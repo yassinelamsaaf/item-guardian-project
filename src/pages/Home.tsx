@@ -10,24 +10,49 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getItems } from "@/utils/storage";
 
 const Home = () => {
-  const [protectedItems, setProtectedItems] = useState<Item[]>([]);
-  const [notProtectedItems, setNotProtectedItems] = useState<Item[]>([]);
+  const [protectedFoundItems, setProtectedFoundItems] = useState<Item[]>([]);
+  const [foundItems, setFoundItems] = useState<Item[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
-    // Load items from localStorage
     if (user) {
-      // Get protected items (with QR codes)
-      const allProtectedItems = getItems("protected");
-      setProtectedItems(allProtectedItems.filter(item => item.userId === user.id));
+      // Load all found items
+      const allFoundItems = getItems("found");
       
-      // Get found items that are not protected
-      const foundItems = getItems("found")
-        .filter(item => item.userId !== user.id); // Only show items found by others
+      // Split into protected and non-protected found items (excluding the user's own items)
+      const otherUserFoundItems = allFoundItems.filter(item => item.userId !== user.id);
       
-      setNotProtectedItems(foundItems);
+      // Get protected items with QR codes that are also found (belongings of others that were found)
+      const protectedItems = getItems("protected");
+      const protectedAndFound = protectedItems.filter(item => 
+        item.status === "protected" && 
+        item.userId !== user.id && 
+        allFoundItems.some(foundItem => foundItem.id === item.id)
+      );
+      
+      setProtectedFoundItems(protectedAndFound);
+      setFoundItems(otherUserFoundItems.filter(item => 
+        !protectedAndFound.some(pItem => pItem.id === item.id)
+      ));
+    } else {
+      // If no user is logged in, just show some example items
+      setProtectedFoundItems([]);
+      setFoundItems([]);
     }
   }, [user]);
+
+  // Add some example items if there are none (just for demonstration)
+  useEffect(() => {
+    if (foundItems.length === 0 && protectedFoundItems.length === 0) {
+      // This is just for demonstration purposes - examples will show up
+      // We'll fetch from mockData instead of creating new ones to avoid duplications
+      const allFoundItems = getItems("found");
+      if (allFoundItems.length > 0) {
+        // Use some existing found items as examples
+        setFoundItems(allFoundItems.slice(0, 3));
+      }
+    }
+  }, [foundItems, protectedFoundItems]);
 
   return (
     <div className="container max-w-4xl mx-auto">
@@ -45,25 +70,25 @@ const Home = () => {
         <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="protected" className="flex items-center gap-2">
             <Shield size={16} />
-            <span>Protected Items</span>
+            <span>Protected &amp; Found</span>
           </TabsTrigger>
-          <TabsTrigger value="not-protected">Not Protected</TabsTrigger>
+          <TabsTrigger value="not-protected">Found Items</TabsTrigger>
         </TabsList>
 
         <TabsContent value="protected">
-          {protectedItems.length > 0 ? (
+          {protectedFoundItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {protectedItems.map(item => (
+              {protectedFoundItems.map(item => (
                 <ItemCard key={item.id} item={item} />
               ))}
             </div>
           ) : (
             <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">No protected items yet</h3>
-              <p className="text-gray-500 mb-4">Add items you want to protect and generate QR codes.</p>
-              <Link to="/my-items">
-                <Button className="bg-found-green hover:bg-found-green/90">
-                  Add Your First Item
+              <h3 className="text-lg font-medium mb-2">No protected found items</h3>
+              <p className="text-gray-500 mb-4">Items with QR codes that have been found will appear here.</p>
+              <Link to="/found-items">
+                <Button className="bg-blue-500 hover:bg-blue-600">
+                  Browse Found Items
                 </Button>
               </Link>
             </div>
@@ -71,9 +96,9 @@ const Home = () => {
         </TabsContent>
 
         <TabsContent value="not-protected">
-          {notProtectedItems.length > 0 ? (
+          {foundItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {notProtectedItems.map(item => (
+              {foundItems.map(item => (
                 <ItemCard 
                   key={item.id} 
                   item={item} 
@@ -82,8 +107,8 @@ const Home = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">No items to show</h3>
-              <p className="text-gray-500">There are currently no found items listed by other users.</p>
+              <h3 className="text-lg font-medium mb-2">No found items</h3>
+              <p className="text-gray-500">Found items reported by other users will appear here.</p>
             </div>
           )}
         </TabsContent>

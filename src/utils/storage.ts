@@ -37,6 +37,16 @@ export const addItem = (item: Item, type: "protected" | "found" | "lost") => {
   return newItems;
 };
 
+// Update an existing item
+export const updateItem = (updatedItem: Item, type: "protected" | "found" | "lost") => {
+  const items = getItems(type);
+  const newItems = items.map(item => 
+    item.id === updatedItem.id ? updatedItem : item
+  );
+  saveItems(newItems, type);
+  return newItems;
+};
+
 // Get a specific item by ID (check all storage types)
 export const getItemById = (id: string): Item | undefined => {
   // Check protected items first
