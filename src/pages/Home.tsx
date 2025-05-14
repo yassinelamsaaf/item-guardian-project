@@ -7,27 +7,97 @@ import { Shield, PlusCircle } from "lucide-react";
 import ItemCard from "@/components/ItemCard";
 import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { getItems } from "@/utils/storage";
+import { getItems, saveItems } from "@/utils/storage";
+
+// Example items for the home page
+const exampleItems: Item[] = [
+  {
+    id: "example-item-1",
+    name: "Apple MacBook Pro",
+    description: "Silver MacBook Pro found in the university library, 13-inch model",
+    category: "Electronics",
+    image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=3270&auto=format&fit=crop",
+    status: "found",
+    isFound: true,
+    dateAdded: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+    userId: "exampleUser1",
+    location: "University Library",
+    contact: {
+      name: "John Smith",
+      phone: "123-456-7890",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "example-item-2",
+    name: "House Keys",
+    description: "Set of house keys with a blue keychain found at Central Park",
+    category: "Accessories",
+    image: "https://images.unsplash.com/photo-1582879304271-6f93bd8e8a12?q=80&w=3270&auto=format&fit=crop",
+    status: "protected",
+    isFound: true,
+    dateAdded: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
+    userId: "exampleUser2",
+    location: "Central Park",
+    qrCode: "QR123456",
+    contact: {
+      name: "Alice Johnson",
+      phone: "234-567-8901",
+      email: "alice@example.com"
+    }
+  },
+  {
+    id: "example-item-3",
+    name: "Black Wallet",
+    description: "Leather wallet with ID cards inside",
+    category: "Accessories",
+    image: "https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=3387&auto=format&fit=crop",
+    status: "found",
+    isFound: true,
+    dateAdded: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    userId: "exampleUser3",
+    location: "Coffee Shop",
+    contact: {
+      name: "Robert Davis",
+      phone: "345-678-9012",
+      email: "robert@example.com"
+    }
+  }
+];
 
 const Home = () => {
   const [protectedFoundItems, setProtectedFoundItems] = useState<Item[]>([]);
   const [foundItems, setFoundItems] = useState<Item[]>([]);
   const { user } = useAuth();
 
+  // Add example items if none exist
   useEffect(() => {
-    if (user) {
-      // Load all found items
-      const allFoundItems = getItems("found");
+    // Get all found items
+    let allFoundItems = getItems("found");
+    const allProtectedItems = getItems("protected");
+    
+    // If no found items, add example found items
+    if (allFoundItems.length === 0) {
+      const itemsToAdd = exampleItems;
+      saveItems(itemsToAdd, "found");
+      allFoundItems = itemsToAdd;
       
-      // Split into protected and non-protected found items (excluding the user's own items)
+      // Add protected items as well
+      const protectedExamples = itemsToAdd.filter(item => item.status === "protected");
+      if (protectedExamples.length > 0) {
+        saveItems(protectedExamples, "protected");
+      }
+    }
+
+    if (user) {
+      // Filter out user's own items
       const otherUserFoundItems = allFoundItems.filter(item => item.userId !== user.id);
       
-      // Get protected items with QR codes that are also found (belongings of others that were found)
-      const protectedItems = getItems("protected");
-      const protectedAndFound = protectedItems.filter(item => 
+      // Get protected items that are also found
+      const protectedAndFound = allProtectedItems.filter(item => 
         item.status === "protected" && 
         item.userId !== user.id && 
-        allFoundItems.some(foundItem => foundItem.id === item.id)
+        (item.isFound || allFoundItems.some(foundItem => foundItem.id === item.id))
       );
       
       setProtectedFoundItems(protectedAndFound);
@@ -35,24 +105,14 @@ const Home = () => {
         !protectedAndFound.some(pItem => pItem.id === item.id)
       ));
     } else {
-      // If no user is logged in, just show some example items
-      setProtectedFoundItems([]);
-      setFoundItems([]);
+      // If no user is logged in, just show example items
+      const protectedExamples = allFoundItems.filter(item => item.status === "protected");
+      const regularExamples = allFoundItems.filter(item => item.status !== "protected");
+      
+      setProtectedFoundItems(protectedExamples);
+      setFoundItems(regularExamples);
     }
   }, [user]);
-
-  // Add some example items if there are none (just for demonstration)
-  useEffect(() => {
-    if (foundItems.length === 0 && protectedFoundItems.length === 0) {
-      // This is just for demonstration purposes - examples will show up
-      // We'll fetch from mockData instead of creating new ones to avoid duplications
-      const allFoundItems = getItems("found");
-      if (allFoundItems.length > 0) {
-        // Use some existing found items as examples
-        setFoundItems(allFoundItems.slice(0, 3));
-      }
-    }
-  }, [foundItems, protectedFoundItems]);
 
   return (
     <div className="container max-w-4xl mx-auto">

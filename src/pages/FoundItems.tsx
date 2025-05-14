@@ -29,14 +29,15 @@ const FoundItems = () => {
   }, []);
   
   const handleAddItem = (newItem: any) => {
-    // Add user ID to the new item
-    const itemWithUserId = {
-      ...newItem,
-      userId: user?.id || "",
-    };
+    // The user ID is now added directly in the form
     
     // Add the item to localStorage
-    const updatedItems = addItem(itemWithUserId, "found");
+    const updatedItems = addItem(newItem, "found");
+    
+    // If the item has a QR code (is protected), also add to protected items
+    if (newItem.qrCode && newItem.status === "protected") {
+      addItem(newItem, "protected");
+    }
     
     // Update local state
     setItems(updatedItems);
@@ -61,7 +62,7 @@ const FoundItems = () => {
     // Filter by search query
     const matchesSearch = !searchQuery || 
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
       
     // Filter by category
     const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;

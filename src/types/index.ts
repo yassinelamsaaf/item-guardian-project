@@ -9,6 +9,8 @@ export interface Item {
   dateAdded: string;
   userId: string;
   location?: string;
+  qrCode?: string;
+  isFound?: boolean;
   contact?: {
     name?: string;
     phone?: string;
@@ -20,6 +22,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
 }
 
 export interface ChatMessage {

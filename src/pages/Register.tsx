@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +35,8 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await register(name, email, password);
+      // Pass phone number in registration
+      await register(name, email, password, phone);
       toast({
         title: "Account created",
         description: "Your account has been created successfully!",
@@ -89,6 +91,17 @@ const Register = () => {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+1 (555) 123-4567"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   required
                 />
               </div>

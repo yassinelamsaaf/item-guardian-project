@@ -1,12 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { Shield } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AddFoundItemFormProps {
   onSubmit: (data: any) => void;
@@ -14,12 +16,14 @@ interface AddFoundItemFormProps {
 }
 
 const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     category: "",
     location: "",
     image: null as File | null,
+    qrCode: "",
     contact: {
       name: "",
       phone: "",
@@ -27,7 +31,22 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
     }
   });
   const [previewUrl, setPreviewUrl] = useState("");
+  const [isProtected, setIsProtected] = useState(false);
   const { toast } = useToast();
+
+  // Pre-populate user data when available
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        contact: {
+          name: user.name || "",
+          phone: user.phone || "",
+          email: user.email || "",
+        }
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -64,6 +83,12 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
     }
   };
 
+  const handleQRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, qrCode: value }));
+    setIsProtected(!!value.trim());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -81,9 +106,12 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
     const newItem = {
       ...formData,
       id: `item-${Date.now()}`,
-      status: "found" as const,
+      status: isProtected ? "protected" : "found",
+      isFound: true,
       dateAdded: new Date().toISOString(),
       image: previewUrl || "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=3374&auto=format&fit=crop",
+      // Add the current user ID
+      userId: user?.id || "",
     };
     
     onSubmit(newItem);
@@ -91,7 +119,7 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
         <div className="space-y-2">
           <Label htmlFor="name">Item Name *</Label>
           <Input
@@ -147,25 +175,47 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>Contact Information</Label>
+          <div className="flex items-center gap-2">
+            <Shield size={16} className={isProtected ? "text-found-green" : "text-gray-400"} />
+            <Label htmlFor="qrCode">QR Code (if available)</Label>
+          </div>
+          <Input
+            id="qrCode"
+            name="qrCode"
+            value={formData.qrCode}
+            onChange={handleQRChange}
+            placeholder="Enter QR code from item"
+          />
+          {isProtected && (
+            <p className="text-xs text-found-green">
+              This item will be marked as protected
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Contact Information (Automatically filled)</Label>
           <div className="space-y-2">
             <Input
               name="contact.name"
               value={formData.contact.name}
               onChange={handleChange}
               placeholder="Your name"
+              disabled
             />
             <Input
               name="contact.phone"
               value={formData.contact.phone}
               onChange={handleChange}
               placeholder="Your phone number"
+              disabled
             />
             <Input
               name="contact.email"
               value={formData.contact.email}
               onChange={handleChange}
               placeholder="Your email"
+              disabled
             />
           </div>
         </div>
