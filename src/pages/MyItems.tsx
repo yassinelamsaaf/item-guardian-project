@@ -5,10 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { PlusCircle } from "lucide-react";
 import ItemCard from "@/components/ItemCard";
 import AddItemForm from "@/components/AddItemForm";
-import { mockItems } from "@/data/mockData";
 import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { getItems, addItem } from "@/utils/storage";
 
 const MyItems = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -17,9 +17,11 @@ const MyItems = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Filter for the current user's protected items
     if (user) {
-      const userItems = mockItems.filter(item => item.userId === user.id && item.status === "protected");
+      // Get items from localStorage
+      const storedItems = getItems("protected");
+      // Filter for current user's items
+      const userItems = storedItems.filter(item => item.userId === user.id);
       setItems(userItems);
     }
   }, [user]);
@@ -31,8 +33,11 @@ const MyItems = () => {
       userId: user?.id || "",
     };
     
-    // Add the new item to the list
-    setItems(prevItems => [...prevItems, itemWithUserId]);
+    // Add the item to localStorage
+    const updatedItems = addItem(itemWithUserId, "protected");
+    
+    // Update local state
+    setItems(updatedItems.filter(item => item.userId === user?.id));
     setIsAddingItem(false);
     
     toast({

@@ -1,45 +1,32 @@
 
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, PlusCircle } from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
 import ItemCard from "@/components/ItemCard";
 import AddFoundItemForm from "@/components/AddFoundItemForm";
-import { mockItems } from "@/data/mockData";
 import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { getItems, addItem } from "@/utils/storage";
 
 const FoundItems = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [isAddingItem, setIsAddingItem] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
-    // Show only found items
-    const foundItems = mockItems.filter(item => item.status === "found");
-    setItems(foundItems);
+    // Get found items from localStorage
+    const storedItems = getItems("found");
+    setItems(storedItems);
   }, []);
-  
-  const filteredItems = items.filter(item => {
-    // Filter by search query
-    const matchesSearch = !searchQuery || 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
-    // Filter by category
-    const matchesCategory = !selectedCategory || item.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
-  
-  // Get unique categories
-  const categories = [...new Set(items.map(item => item.category))];
   
   const handleAddItem = (newItem: any) => {
     // Add user ID to the new item
@@ -48,15 +35,42 @@ const FoundItems = () => {
       userId: user?.id || "",
     };
     
-    // Add the new item to the list
-    setItems(prevItems => [...prevItems, itemWithUserId]);
+    // Add the item to localStorage
+    const updatedItems = addItem(itemWithUserId, "found");
+    
+    // Update local state
+    setItems(updatedItems);
     setIsAddingItem(false);
     
     toast({
-      title: "Found item reported",
-      description: "Thank you for reporting this found item.",
+      title: "Item added",
+      description: "Your found item has been listed successfully.",
     });
   };
+  
+  const handleContactClick = (itemId: string) => {
+    // Navigate to chat with the item owner
+    const item = items.find(i => i.id === itemId);
+    if (item && item.userId) {
+      // Create a chat URL with the user ID and item ID
+      navigate(`/chat/${item.userId}?itemId=${itemId}`);
+    }
+  };
+  
+  const filteredItems = items.filter(item => {
+    // Filter by search query
+    const matchesSearch = !searchQuery || 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+    // Filter by category
+    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+  
+  // Get unique categories
+  const categories = [...new Set(items.map(item => item.category))];
   
   return (
     <div className="container max-w-4xl mx-auto">
@@ -102,32 +116,29 @@ const FoundItems = () => {
       {filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {filteredItems.map(item => (
-            <ItemCard key={item.id} item={item} />
+            <ItemCard 
+              key={item.id} 
+              item={item}
+              onContactClick={handleContactClick}
+            />
           ))}
         </div>
       ) : (
         <div className="text-center py-12">
           <h3 className="text-lg font-medium mb-2">No items found</h3>
           <p className="text-gray-500">
-            {searchQuery || selectedCategory
+            {searchQuery || selectedCategory !== "all"
               ? "Try adjusting your search or filters"
-              : "No found items have been reported yet"}
+              : "No items have been listed yet"}
           </p>
-          <Button 
-            className="bg-blue-500 hover:bg-blue-600 mt-4"
-            onClick={() => setIsAddingItem(true)}
-          >
-            <PlusCircle className="mr-2" size={16} />
-            Report a Found Item
-          </Button>
         </div>
       )}
-
+      
       {/* Add Found Item Dialog */}
       <Dialog open={isAddingItem} onOpenChange={setIsAddingItem}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Report a Found Item</DialogTitle>
+            <DialogTitle>Report Found Item</DialogTitle>
           </DialogHeader>
           <AddFoundItemForm 
             onSubmit={handleAddItem} 

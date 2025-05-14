@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Shield, MapPin } from "lucide-react";
+import { Shield, MapPin, Search } from "lucide-react";
 import { Item } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils";
 interface ItemCardProps {
   item: Item;
   showStatus?: boolean;
+  onContactClick?: (itemId: string) => void;
 }
 
-const ItemCard = ({ item, showStatus = true }: ItemCardProps) => {
+const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) => {
   const { id, name, image, status, location, dateAdded } = item;
   
   const formatDate = (dateString: string) => {
@@ -19,6 +20,13 @@ const ItemCard = ({ item, showStatus = true }: ItemCardProps) => {
     return date.toLocaleDateString();
   };
   
+  const handleContactClick = (e: React.MouseEvent) => {
+    if (onContactClick) {
+      e.preventDefault(); // Prevent navigation to item detail
+      onContactClick(id);
+    }
+  };
+
   return (
     <Link to={`/item/${id}`}>
       <Card className="overflow-hidden transition-all hover:shadow-md">
@@ -28,13 +36,21 @@ const ItemCard = ({ item, showStatus = true }: ItemCardProps) => {
             alt={name}
             className="h-full w-full object-cover"
           />
-          {status === "protected" && (
-            <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 flex gap-1">
+            {/* Display QR code icon for protected items */}
+            {item.status === "protected" && (
               <div className="bg-found-green rounded-full p-1">
                 <Shield size={16} className="text-white" />
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Display found icon for found items */}
+            {item.status === "found" && (
+              <div className="bg-blue-500 rounded-full p-1">
+                <Search size={16} className="text-white" />
+              </div>
+            )}
+          </div>
         </div>
         <CardContent className="p-4">
           <h3 className="font-semibold text-base mb-1">{name}</h3>
@@ -49,7 +65,7 @@ const ItemCard = ({ item, showStatus = true }: ItemCardProps) => {
           </div>
         </CardContent>
         {showStatus && (
-          <CardFooter className="p-4 pt-0">
+          <CardFooter className="p-4 pt-0 flex items-center justify-between">
             <Badge 
               className={cn(
                 "text-xs",
@@ -61,6 +77,15 @@ const ItemCard = ({ item, showStatus = true }: ItemCardProps) => {
               {status === "protected" ? "Protected" : 
                status === "found" ? "Found" : "Lost"}
             </Badge>
+            
+            {item.status === "found" && item.contact && onContactClick && (
+              <button 
+                onClick={handleContactClick}
+                className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+              >
+                Contact Finder
+              </button>
+            )}
           </CardFooter>
         )}
       </Card>

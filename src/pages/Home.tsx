@@ -5,20 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, PlusCircle } from "lucide-react";
 import ItemCard from "@/components/ItemCard";
-import { mockItems } from "@/data/mockData";
 import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { getItems } from "@/utils/storage";
 
 const Home = () => {
-  const [myItems, setMyItems] = useState<Item[]>([]);
-  const [listedItems, setListedItems] = useState<Item[]>([]);
+  const [protectedItems, setProtectedItems] = useState<Item[]>([]);
+  const [notProtectedItems, setNotProtectedItems] = useState<Item[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
-    // Filter items for the current user (protected) and other users (found)
+    // Load items from localStorage
     if (user) {
-      setMyItems(mockItems.filter(item => item.userId === user.id && item.status === "protected"));
-      setListedItems(mockItems.filter(item => item.status === "found"));
+      // Get protected items (with QR codes)
+      const allProtectedItems = getItems("protected");
+      setProtectedItems(allProtectedItems.filter(item => item.userId === user.id));
+      
+      // Get found items that are not protected
+      const foundItems = getItems("found")
+        .filter(item => item.userId !== user.id); // Only show items found by others
+      
+      setNotProtectedItems(foundItems);
     }
   }, [user]);
 
@@ -34,19 +41,19 @@ const Home = () => {
         </Link>
       </div>
 
-      <Tabs defaultValue="my-items" className="mb-8">
+      <Tabs defaultValue="protected" className="mb-8">
         <TabsList className="grid grid-cols-2 mb-4">
-          <TabsTrigger value="my-items" className="flex items-center gap-2">
+          <TabsTrigger value="protected" className="flex items-center gap-2">
             <Shield size={16} />
-            <span>My Items</span>
+            <span>Protected Items</span>
           </TabsTrigger>
-          <TabsTrigger value="listed-items">Listed Items</TabsTrigger>
+          <TabsTrigger value="not-protected">Not Protected</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="my-items">
-          {myItems.length > 0 ? (
+        <TabsContent value="protected">
+          {protectedItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {myItems.map(item => (
+              {protectedItems.map(item => (
                 <ItemCard key={item.id} item={item} />
               ))}
             </div>
@@ -63,16 +70,19 @@ const Home = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="listed-items">
-          {listedItems.length > 0 ? (
+        <TabsContent value="not-protected">
+          {notProtectedItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {listedItems.map(item => (
-                <ItemCard key={item.id} item={item} />
+              {notProtectedItems.map(item => (
+                <ItemCard 
+                  key={item.id} 
+                  item={item} 
+                />
               ))}
             </div>
           ) : (
             <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">No listed items</h3>
+              <h3 className="text-lg font-medium mb-2">No items to show</h3>
               <p className="text-gray-500">There are currently no found items listed by other users.</p>
             </div>
           )}
