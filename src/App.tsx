@@ -33,7 +33,7 @@ const App = () => (
               <Route path="my-items" element={<MyItems />} />
               <Route path="found-items" element={<FoundItems />} />
               <Route path="item/:id" element={<ItemDetail />} />
-              <Route path="chat" element={<Chat />}>
+              <Route path="chat/*" element={<Chat />}>
                 <Route path=":chatId" element={null} />
               </Route>
               <Route path="settings" element={<Settings />} />

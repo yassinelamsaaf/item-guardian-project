@@ -23,6 +23,7 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
   const handleContactClick = (e: React.MouseEvent) => {
     if (onContactClick) {
       e.preventDefault(); // Prevent navigation to item detail
+      e.stopPropagation(); // Stop event bubbling
       onContactClick(id);
     }
   };
@@ -37,22 +38,22 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
             className="h-full w-full object-cover"
           />
           <div className="absolute top-2 right-2 flex gap-1">
-            {/* Display Shield icon for protected items */}
-            {item.qrCode && (
+            {/* Display icons based on status type */}
+            {status === "protected" && item.qrCode && (
               <div className="bg-found-green rounded-full p-1">
                 <Shield size={16} className="text-white" />
               </div>
             )}
             
-            {/* Display found icon for found items - just using a blue circle */}
-            {item.status === "found" && (
+            {/* Display found icon for found items */}
+            {(status === "found" || (status === "protected" && item.isFound)) && (
               <div className="bg-blue-500 rounded-full p-1">
                 <div className="w-4 h-4 bg-white rounded-full"></div>
               </div>
             )}
             
             {/* Display "my item" icon for user's own items */}
-            {item.status === "protected" && (
+            {status === "myitem" && (
               <div className="bg-purple-500 rounded-full p-1">
                 <Package size={16} className="text-white" />
               </div>
@@ -78,14 +79,16 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
                 "text-xs",
                 status === "protected" ? "bg-found-green hover:bg-found-green/90" : 
                 status === "found" ? "bg-blue-500 hover:bg-blue-600" : 
+                status === "myitem" ? "bg-purple-500 hover:bg-purple-600" :
                 "bg-lost-red hover:bg-lost-red/90"
               )}
             >
               {status === "protected" ? "Protected" : 
-               status === "found" ? "Found" : "Lost"}
+               status === "found" ? "Found" : 
+               status === "myitem" ? "My Item" : "Lost"}
             </Badge>
             
-            {item.status === "found" && item.contact && onContactClick && (
+            {(item.status === "found" || (item.status === "protected" && item.isFound)) && item.contact && onContactClick && (
               <button 
                 onClick={handleContactClick}
                 className="text-xs text-blue-500 hover:text-blue-700 font-medium"

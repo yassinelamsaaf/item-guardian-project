@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Search } from "lucide-react";
@@ -29,24 +29,31 @@ const FoundItems = () => {
   }, []);
   
   const handleAddItem = (newItem: any) => {
-    // The user ID is now added directly in the form
-    
-    // Add the item to localStorage
-    const updatedItems = addItem(newItem, "found");
-    
-    // If the item has a QR code (is protected), also add to protected items
-    if (newItem.qrCode && newItem.status === "protected") {
-      addItem(newItem, "protected");
+    try {
+      // Add the item to localStorage
+      const updatedItems = addItem(newItem, "found");
+      
+      // If the item has a QR code (is protected), also add to protected items
+      if (newItem.qrCode && newItem.status === "protected") {
+        addItem(newItem, "protected");
+      }
+      
+      // Update local state
+      setItems(updatedItems);
+      setIsAddingItem(false);
+      
+      toast({
+        title: "Item added",
+        description: "Your found item has been listed successfully.",
+      });
+    } catch (error) {
+      console.error("Error adding item:", error);
+      toast({
+        title: "Error adding item",
+        description: "There was a problem adding your item. Please try again.",
+        variant: "destructive",
+      });
     }
-    
-    // Update local state
-    setItems(updatedItems);
-    setIsAddingItem(false);
-    
-    toast({
-      title: "Item added",
-      description: "Your found item has been listed successfully.",
-    });
   };
   
   const handleContactClick = (itemId: string) => {
@@ -140,6 +147,9 @@ const FoundItems = () => {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Report Found Item</DialogTitle>
+            <DialogDescription>
+              Add details about the item you found to help reunite it with its owner.
+            </DialogDescription>
           </DialogHeader>
           <AddFoundItemForm 
             onSubmit={handleAddItem} 
