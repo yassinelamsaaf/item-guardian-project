@@ -9,6 +9,7 @@ import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { getItems, saveItems } from "@/utils/storage";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 
 // Example items for the home page
 const exampleItems: Item[] = [
@@ -103,10 +104,11 @@ const exampleItems: Item[] = [
 const Home = () => {
   const [protectedFoundItems, setProtectedFoundItems] = useState<Item[]>([]);
   const [foundItems, setFoundItems] = useState<Item[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Add example items if none exist
+  // Add example items if none exist and ensure they're always included
   useEffect(() => {
     // Get all items
     let allFoundItems = getItems("found");
@@ -126,7 +128,6 @@ const Home = () => {
       }
     } else {
       // Make sure examples are always included in the stored items
-      // This ensures persistent examples even after user adds their own items
       let updatedFoundItems = [...allFoundItems];
       
       // Check if example items exist, add them if they don't
@@ -161,14 +162,13 @@ const Home = () => {
 
     // Filter items for display on home page
     if (user) {
-      // Filter out user's own items
+      // Filter out user's own items - items with the current user's ID shouldn't appear
       const otherUserFoundItems = allFoundItems.filter(item => item.userId !== user.id);
       
-      // Get protected items that are also found
+      // Get protected items that are also found (but exclude user's own items)
       const protectedAndFound = allProtectedItems.filter(item => 
         item.status === "protected" && 
-        item.userId !== user.id && 
-        (item.isFound || allFoundItems.some(foundItem => foundItem.id === item.id))
+        item.userId !== user.id
       );
       
       setProtectedFoundItems(protectedAndFound);
@@ -177,7 +177,7 @@ const Home = () => {
       ));
     } else {
       // If no user is logged in, just show all items including examples
-      const protectedExamples = allProtectedItems.filter(item => item.status === "protected");
+      const protectedExamples = allProtectedItems;
       const regularItems = allFoundItems.filter(item => 
         !protectedExamples.some(pItem => pItem.id === item.id)
       );
@@ -186,6 +186,19 @@ const Home = () => {
       setFoundItems(regularItems);
     }
   }, [user]);
+
+  // Filter items based on search term
+  const filteredProtectedItems = protectedFoundItems.filter(item => 
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.location && item.location.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const filteredFoundItems = foundItems.filter(item => 
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.location && item.location.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   const handleContactClick = (itemId: string) => {
     // Get item details
@@ -210,6 +223,14 @@ const Home = () => {
         </Link>
       </div>
 
+      <div className="mb-4">
+        <Input 
+          placeholder="Search items..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       <Tabs defaultValue="protected" className="mb-8">
         <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="protected" className="flex items-center gap-2">
@@ -220,9 +241,9 @@ const Home = () => {
         </TabsList>
 
         <TabsContent value="protected">
-          {protectedFoundItems.length > 0 ? (
+          {filteredProtectedItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {protectedFoundItems.map(item => (
+              {filteredProtectedItems.map(item => (
                 <ItemCard 
                   key={item.id} 
                   item={item} 
@@ -244,9 +265,9 @@ const Home = () => {
         </TabsContent>
 
         <TabsContent value="not-protected">
-          {foundItems.length > 0 ? (
+          {filteredFoundItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {foundItems.map(item => (
+              {filteredFoundItems.map(item => (
                 <ItemCard 
                   key={item.id} 
                   item={item} 

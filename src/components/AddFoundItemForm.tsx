@@ -24,6 +24,7 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
     location: "",
     image: null as File | null,
     qrCode: "",
+    qrCodeImage: null as File | null,
     contact: {
       name: "",
       phone: "",
@@ -31,6 +32,7 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
     }
   });
   const [previewUrl, setPreviewUrl] = useState("");
+  const [qrPreviewUrl, setQrPreviewUrl] = useState("");
   const [isProtected, setIsProtected] = useState(false);
   const { toast } = useToast();
 
@@ -83,6 +85,21 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
     }
   };
 
+  const handleQRImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, qrCodeImage: file }));
+      setIsProtected(true);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = () => {
+        setQrPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleQRChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, qrCode: value }));
@@ -110,6 +127,7 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
       isFound: true,
       dateAdded: new Date().toISOString(),
       image: previewUrl || "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=3374&auto=format&fit=crop",
+      qrCodeImage: qrPreviewUrl || "",
       // Add the current user ID
       userId: user?.id || "",
     };
@@ -118,8 +136,8 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+    <form onSubmit={handleSubmit} className="max-h-[60vh] overflow-y-auto pr-2">
+      <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Item Name *</Label>
           <Input
@@ -194,6 +212,27 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="qrCodeImage">QR Code Image (if available)</Label>
+          <Input
+            id="qrCodeImage"
+            type="file"
+            accept="image/*"
+            onChange={handleQRImageChange}
+            className="cursor-pointer"
+          />
+          
+          {qrPreviewUrl && (
+            <div className="mt-2">
+              <img 
+                src={qrPreviewUrl} 
+                alt="QR Code Preview" 
+                className="max-h-40 rounded-md object-contain"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
           <Label>Contact Information (Automatically filled)</Label>
           <div className="space-y-2">
             <Input
@@ -221,7 +260,7 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="image">Upload Image</Label>
+          <Label htmlFor="image">Upload Item Image</Label>
           <Input
             id="image"
             type="file"

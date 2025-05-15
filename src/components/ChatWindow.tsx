@@ -85,11 +85,11 @@ const ChatWindow = ({ userId, onBack }: ChatWindowProps) => {
   
   return (
     <Card className="h-[600px] flex flex-col">
-      <CardHeader className="border-b p-4 flex-shrink-0 flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="mr-2" onClick={onBack}>
-          <ArrowLeft size={20} />
+      <CardHeader className="border-b p-4 flex-shrink-0 flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onBack}>
+          <ArrowLeft size={18} />
         </Button>
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-10 w-10">
           <AvatarFallback>{getNameInitials(otherName)}</AvatarFallback>
         </Avatar>
         <div>

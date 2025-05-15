@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, MapPin, Shield, MessageSquare } from "lucide-react";
+import { Phone, Mail, MapPin, Shield, MessageSquare, Truck } from "lucide-react";
 import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import QRCode from "@/components/QRCode";
@@ -13,11 +13,13 @@ import ItemCard from "@/components/ItemCard";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { getItemById, getItems } from "@/utils/storage";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [item, setItem] = useState<Item | null>(null);
   const [similarItems, setSimilarItems] = useState<Item[]>([]);
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -51,7 +53,75 @@ const ItemDetail = () => {
               email: "john@example.com"
             }
           },
-          // More example items can go here
+          {
+            id: "example-item-2",
+            name: "House Keys",
+            description: "Set of house keys with a blue keychain found at Central Park",
+            category: "Accessories",
+            image: "https://images.unsplash.com/photo-1582879304271-6f93bd8e8a12?q=80&w=3270&auto=format&fit=crop",
+            status: "protected" as const,
+            isFound: true,
+            dateAdded: new Date(Date.now() - 86400000 * 3).toISOString(),
+            userId: "exampleUser2",
+            location: "Central Park",
+            qrCode: "QR123456",
+            contact: {
+              name: "Alice Johnson",
+              phone: "234-567-8901",
+              email: "alice@example.com"
+            }
+          },
+          {
+            id: "example-item-3",
+            name: "Black Wallet",
+            description: "Leather wallet with ID cards inside",
+            category: "Accessories",
+            image: "https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=3387&auto=format&fit=crop",
+            status: "found" as const,
+            isFound: true,
+            dateAdded: new Date(Date.now() - 86400000).toISOString(),
+            userId: "exampleUser3",
+            location: "Coffee Shop",
+            contact: {
+              name: "Robert Davis",
+              phone: "345-678-9012",
+              email: "robert@example.com"
+            }
+          },
+          {
+            id: "example-item-4",
+            name: "Headphones",
+            description: "Wireless noise-cancelling headphones, black color",
+            category: "Electronics",
+            image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=3270&auto=format&fit=crop",
+            status: "lost" as const,
+            isFound: false,
+            dateAdded: new Date(Date.now() - 86400000 * 5).toISOString(),
+            userId: "exampleUser4",
+            location: "Downtown Bus",
+            contact: {
+              name: "Emma Wilson",
+              phone: "456-789-0123",
+              email: "emma@example.com"
+            }
+          },
+          {
+            id: "example-item-5",
+            name: "Bike",
+            description: "Red mountain bike with black mudguards",
+            category: "Sports",
+            image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=3270&auto=format&fit=crop",
+            status: "found" as const,
+            isFound: true,
+            dateAdded: new Date(Date.now() - 86400000 * 4).toISOString(),
+            userId: "exampleUser5",
+            location: "City Park",
+            contact: {
+              name: "David Brown",
+              phone: "567-890-1234",
+              email: "david@example.com"
+            }
+          }
         ];
         
         const exampleItem = exampleItems.find(item => item.id === id);
@@ -87,6 +157,10 @@ const ItemDetail = () => {
         description: "A chat has been created with this item's finder.",
       });
     }
+  };
+  
+  const handleDeliveryRequest = () => {
+    setShowDeliveryDialog(true);
   };
   
   if (!item) {
@@ -183,13 +257,24 @@ const ItemDetail = () => {
             )}
             
             {item.status === "found" && !isOwner && (
-              <Button 
-                onClick={handleContactOwner}
-                className="w-full mt-2 bg-found-green hover:bg-found-green/90"
-              >
-                <MessageSquare size={16} className="mr-2" />
-                Contact Finder
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  onClick={handleContactOwner}
+                  className="w-full bg-found-green hover:bg-found-green/90"
+                >
+                  <MessageSquare size={16} className="mr-2" />
+                  Contact Finder
+                </Button>
+                
+                <Button 
+                  onClick={handleDeliveryRequest}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <Truck size={16} className="mr-2" />
+                  Request Delivery
+                </Button>
+              </div>
             )}
           </div>
         </Card>
@@ -212,6 +297,34 @@ const ItemDetail = () => {
           </div>
         </div>
       )}
+
+      <Dialog open={showDeliveryDialog} onOpenChange={setShowDeliveryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Delivery Service</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="mb-4">
+              Please contact our delivery partner to arrange pickup and delivery of this item:
+            </p>
+            <div className="flex items-center bg-gray-100 p-4 rounded-md">
+              <Phone size={20} className="text-found-green mr-3" />
+              <div>
+                <p className="font-medium">Delivery Service</p>
+                <a href="tel:+1234567890" className="text-blue-600 text-lg font-bold">
+                  +1 (234) 567-890
+                </a>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-gray-500">
+              Mention the item ID: <span className="font-medium">{item.id}</span>
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowDeliveryDialog(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

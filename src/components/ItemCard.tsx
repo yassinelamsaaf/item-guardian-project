@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Shield, MapPin, AlertCircle } from "lucide-react";
+import { Shield, MapPin } from "lucide-react";
 import { Item } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -37,17 +37,17 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
             className="h-full w-full object-cover"
           />
           <div className="absolute top-2 right-2 flex gap-1">
-            {/* Display QR code icon for protected items */}
+            {/* Display Shield icon for protected items */}
             {item.status === "protected" && (
               <div className="bg-found-green rounded-full p-1">
                 <Shield size={16} className="text-white" />
               </div>
             )}
             
-            {/* Display lost icon for found items */}
-            {item.status === "found" && (
-              <div className="bg-lost-red rounded-full p-1">
-                <AlertCircle size={16} className="text-white" />
+            {/* Display found icon for found items - just using a green circle */}
+            {(item.status === "found" || item.status === "protected") && (
+              <div className="bg-blue-500 rounded-full p-1">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
               </div>
             )}
           </div>
