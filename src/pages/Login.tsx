@@ -43,8 +43,12 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-b from-found-green/20 to-white flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-6">
-          <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-found-green mb-4">
-            <Box size={32} className="text-white" />
+          <div className="flex items-center justify-center w-32 h-32 mb-4">
+            <img 
+              src="/lovable-uploads/876b7a77-b39b-4d85-9b56-15d2adf7a0a3.png" 
+              alt="Lost & Found Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold text-center">Lost & Found</h1>
           <p className="text-gray-500 text-sm mt-2">Protect your belongings</p>

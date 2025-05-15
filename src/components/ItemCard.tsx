@@ -38,21 +38,21 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
           />
           <div className="absolute top-2 right-2 flex gap-1">
             {/* Display Shield icon for protected items */}
-            {item.status === "protected" && (
+            {item.qrCode && (
               <div className="bg-found-green rounded-full p-1">
                 <Shield size={16} className="text-white" />
               </div>
             )}
             
             {/* Display found icon for found items - just using a blue circle */}
-            {(item.status === "found" || item.status === "protected") && (
+            {item.status === "found" && (
               <div className="bg-blue-500 rounded-full p-1">
                 <div className="w-4 h-4 bg-white rounded-full"></div>
               </div>
             )}
             
             {/* Display "my item" icon for user's own items */}
-            {item.status === "protected" && item.qrCode && (
+            {item.status === "protected" && (
               <div className="bg-purple-500 rounded-full p-1">
                 <Package size={16} className="text-white" />
               </div>
