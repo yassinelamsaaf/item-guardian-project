@@ -66,23 +66,6 @@ const exampleItems: Item[] = [
     }
   },
   {
-    id: "example-item-4",
-    name: "Headphones",
-    description: "Wireless noise-cancelling headphones, black color",
-    category: "Electronics",
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=3270&auto=format&fit=crop",
-    status: "lost",
-    isFound: false,
-    dateAdded: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-    userId: "exampleUser4",
-    location: "Downtown Bus",
-    contact: {
-      name: "Emma Wilson",
-      phone: "456-789-0123",
-      email: "emma@example.com"
-    }
-  },
-  {
     id: "example-item-5",
     name: "Bike",
     description: "Red mountain bike with black mudguards",
@@ -113,11 +96,12 @@ const Home = () => {
     // Get all items
     let allFoundItems = getItems("found");
     const allProtectedItems = getItems("protected");
+    const myItems = getItems("protected").filter(item => user && item.userId === user.id);
     
     // If no found items, add example found items
     if (allFoundItems.length === 0) {
       // Filter examples to found items only
-      const foundExamples = exampleItems.filter(item => item.status === "found" || item.status === "lost");
+      const foundExamples = exampleItems.filter(item => item.status === "found");
       saveItems(foundExamples, "found");
       allFoundItems = foundExamples;
       
@@ -132,7 +116,7 @@ const Home = () => {
       
       // Check if example items exist, add them if they don't
       exampleItems.forEach(example => {
-        if (example.status === "found" || example.status === "lost") {
+        if (example.status === "found") {
           if (!allFoundItems.some(item => item.id === example.id)) {
             updatedFoundItems.push(example);
           }
@@ -172,18 +156,15 @@ const Home = () => {
       );
       
       setProtectedFoundItems(protectedAndFound);
-      setFoundItems(otherUserFoundItems.filter(item => 
-        !protectedAndFound.some(pItem => pItem.id === item.id)
-      ));
+      setFoundItems(otherUserFoundItems);
     } else {
       // If no user is logged in, just show all items including examples
-      const protectedExamples = allProtectedItems;
-      const regularItems = allFoundItems.filter(item => 
-        !protectedExamples.some(pItem => pItem.id === item.id)
+      const protectedExamples = allProtectedItems.filter(item => 
+        !myItems.some(myItem => myItem.id === item.id)
       );
       
       setProtectedFoundItems(protectedExamples);
-      setFoundItems(regularItems);
+      setFoundItems(allFoundItems);
     }
   }, [user]);
 

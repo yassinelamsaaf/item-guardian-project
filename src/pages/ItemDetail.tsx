@@ -13,7 +13,7 @@ import ItemCard from "@/components/ItemCard";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { getItemById, getItems } from "@/utils/storage";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -86,23 +86,6 @@ const ItemDetail = () => {
               name: "Robert Davis",
               phone: "345-678-9012",
               email: "robert@example.com"
-            }
-          },
-          {
-            id: "example-item-4",
-            name: "Headphones",
-            description: "Wireless noise-cancelling headphones, black color",
-            category: "Electronics",
-            image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=3270&auto=format&fit=crop",
-            status: "lost" as const,
-            isFound: false,
-            dateAdded: new Date(Date.now() - 86400000 * 5).toISOString(),
-            userId: "exampleUser4",
-            location: "Downtown Bus",
-            contact: {
-              name: "Emma Wilson",
-              phone: "456-789-0123",
-              email: "emma@example.com"
             }
           },
           {
@@ -302,11 +285,11 @@ const ItemDetail = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Request Delivery Service</DialogTitle>
+            <DialogDescription>
+              Contact our delivery partner to arrange pickup and delivery of this item.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <p className="mb-4">
-              Please contact our delivery partner to arrange pickup and delivery of this item:
-            </p>
             <div className="flex items-center bg-gray-100 p-4 rounded-md">
               <Phone size={20} className="text-found-green mr-3" />
               <div>

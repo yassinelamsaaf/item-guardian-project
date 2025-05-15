@@ -5,10 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Languages } from "lucide-react";
 import { mockChats, mockChatMessages } from "@/data/mockData";
 import { ChatMessage } from "@/types";
 import { cn } from "@/lib/utils";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { toast } from "@/hooks/use-toast";
 
 interface ChatWindowProps {
   userId: string;
@@ -22,6 +29,7 @@ const ChatWindow = ({ userId, onBack }: ChatWindowProps) => {
   
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [translating, setTranslating] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Get chat details
@@ -83,18 +91,33 @@ const ChatWindow = ({ userId, onBack }: ChatWindowProps) => {
       .slice(0, 2);
   };
   
+  const handleTranslate = (language: string) => {
+    setTranslating(true);
+    
+    // Simulate translation (in a real app, this would call a translation API)
+    setTimeout(() => {
+      toast({
+        title: "Messages translated",
+        description: `All messages have been translated to ${language}`,
+      });
+      setTranslating(false);
+    }, 1000);
+  };
+  
   return (
     <Card className="h-[600px] flex flex-col">
-      <CardHeader className="border-b p-4 flex-shrink-0 flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onBack}>
-          <ArrowLeft size={18} />
-        </Button>
-        <Avatar className="h-10 w-10">
-          <AvatarFallback>{getNameInitials(otherName)}</AvatarFallback>
-        </Avatar>
-        <div>
-          <h2 className="font-semibold">{otherName}</h2>
-          {itemId && <p className="text-xs text-gray-500">About item #{itemId.slice(0, 8)}</p>}
+      <CardHeader className="border-b p-4 flex-shrink-0 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onBack}>
+            <ArrowLeft size={18} />
+          </Button>
+          <Avatar className="h-10 w-10">
+            <AvatarFallback>{getNameInitials(otherName)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="font-semibold">{otherName}</h2>
+            {itemId && <p className="text-xs text-gray-500">About item #{itemId.slice(0, 8)}</p>}
+          </div>
         </div>
       </CardHeader>
       
@@ -146,10 +169,35 @@ const ChatWindow = ({ userId, onBack }: ChatWindowProps) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className={cn(translating && "animate-pulse")}
+              >
+                <Languages size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleTranslate("English")}>
+                Translate to English
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTranslate("French")}>
+                Translate to French
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTranslate("Arabic")}>
+                Translate to Arabic
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTranslate("Spanish")}>
+                Translate to Spanish
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             type="submit"
             className="bg-found-green hover:bg-found-green/90"
-            disabled={!message.trim()}
+            disabled={!message.trim() || translating}
           >
             <Send size={18} />
           </Button>

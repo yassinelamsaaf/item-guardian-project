@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PlusCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { PlusCircle, Package } from "lucide-react";
 import ItemCard from "@/components/ItemCard";
 import AddItemForm from "@/components/AddItemForm";
 import { Item } from "@/types";
@@ -49,7 +49,10 @@ const MyItems = () => {
   return (
     <div className="container max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">My Protected Items</h1>
+        <div className="flex items-center gap-2">
+          <Package size={20} className="text-purple-500" />
+          <h1 className="text-2xl font-bold">My Protected Items</h1>
+        </div>
         <Button 
           className="bg-found-green hover:bg-found-green/90"
           onClick={() => setIsAddingItem(true)}
@@ -81,9 +84,12 @@ const MyItems = () => {
 
       {/* Add Item Dialog */}
       <Dialog open={isAddingItem} onOpenChange={setIsAddingItem}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>Add New Protected Item</DialogTitle>
+            <DialogDescription>
+              Add your valuable items to generate QR codes for them.
+            </DialogDescription>
           </DialogHeader>
           <AddItemForm 
             onSubmit={handleAddItem} 
