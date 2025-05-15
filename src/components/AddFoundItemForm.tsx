@@ -119,7 +119,7 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
+      <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
         <div className="space-y-2">
           <Label htmlFor="name">Item Name *</Label>
           <Input

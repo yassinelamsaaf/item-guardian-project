@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Shield, MapPin, Search } from "lucide-react";
+import { Shield, MapPin, AlertCircle } from "lucide-react";
 import { Item } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -44,10 +44,10 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
               </div>
             )}
             
-            {/* Display found icon for found items */}
+            {/* Display lost icon for found items */}
             {item.status === "found" && (
-              <div className="bg-blue-500 rounded-full p-1">
-                <Search size={16} className="text-white" />
+              <div className="bg-lost-red rounded-full p-1">
+                <AlertCircle size={16} className="text-white" />
               </div>
             )}
           </div>

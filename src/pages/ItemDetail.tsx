@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +13,6 @@ import ItemCard from "@/components/ItemCard";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { getItemById, getItems } from "@/utils/storage";
-import { useNavigate } from "react-router-dom";
 
 const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,9 +29,38 @@ const ItemDetail = () => {
     if (id) {
       // Find the item by ID using the utility function
       const foundItem = getItemById(id);
-      setItem(foundItem || null);
       
-      // Find similar items (same name, excluding current)
+      // Also check in our example items for persistent items
+      if (!foundItem) {
+        // Import example items from Home.tsx
+        const exampleItems = [
+          {
+            id: "example-item-1",
+            name: "Apple MacBook Pro",
+            description: "Silver MacBook Pro found in the university library, 13-inch model",
+            category: "Electronics",
+            image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=3270&auto=format&fit=crop",
+            status: "found" as const,
+            isFound: true,
+            dateAdded: new Date(Date.now() - 86400000 * 2).toISOString(),
+            userId: "exampleUser1",
+            location: "University Library",
+            contact: {
+              name: "John Smith",
+              phone: "123-456-7890",
+              email: "john@example.com"
+            }
+          },
+          // More example items can go here
+        ];
+        
+        const exampleItem = exampleItems.find(item => item.id === id);
+        setItem(exampleItem || null);
+      } else {
+        setItem(foundItem);
+      }
+      
+      // Find similar items (same category, excluding current)
       if (foundItem) {
         // Combine all items from all storage types
         const protectedItems = getItems("protected");
@@ -42,9 +70,9 @@ const ItemDetail = () => {
         
         const similar = allItems.filter(i => 
           i.id !== id && 
-          i.name.toLowerCase() === foundItem.name.toLowerCase()
+          i.category === foundItem.category
         );
-        setSimilarItems(similar);
+        setSimilarItems(similar.slice(0, 3)); // Limit to 3 similar items
       }
     }
   }, [id]);
@@ -66,6 +94,12 @@ const ItemDetail = () => {
       <div className="container max-w-4xl mx-auto text-center py-12">
         <h2 className="text-2xl font-bold mb-4">Item not found</h2>
         <p className="text-gray-500">The requested item could not be found.</p>
+        <Button 
+          className="mt-4"
+          onClick={() => navigate("/")}
+        >
+          Return to Home
+        </Button>
       </div>
     );
   }
@@ -172,7 +206,7 @@ const ItemDetail = () => {
           <Separator className="mb-6" />
           <h2 className="font-semibold text-lg mb-4">Similar Items</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {similarItems.slice(0, 3).map(item => (
+            {similarItems.map(item => (
               <ItemCard key={item.id} item={item} />
             ))}
           </div>

@@ -6,13 +6,14 @@ interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -53,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: "123",
         name: "Demo User",
         email: email,
+        phone: "",
       };
 
       setUser(mockUser);
@@ -63,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, phone?: string) => {
     // Simulate API call
     if (name && email && password) {
       // For demo purposes, we're using a mock user
@@ -71,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: "123",
         name: name,
         email: email,
+        phone: phone || "",
       };
 
       setUser(mockUser);

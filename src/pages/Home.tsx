@@ -8,6 +8,7 @@ import ItemCard from "@/components/ItemCard";
 import { Item } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { getItems, saveItems } from "@/utils/storage";
+import { useNavigate } from "react-router-dom";
 
 // Example items for the home page
 const exampleItems: Item[] = [
@@ -62,6 +63,40 @@ const exampleItems: Item[] = [
       phone: "345-678-9012",
       email: "robert@example.com"
     }
+  },
+  {
+    id: "example-item-4",
+    name: "Headphones",
+    description: "Wireless noise-cancelling headphones, black color",
+    category: "Electronics",
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=3270&auto=format&fit=crop",
+    status: "lost",
+    isFound: false,
+    dateAdded: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+    userId: "exampleUser4",
+    location: "Downtown Bus",
+    contact: {
+      name: "Emma Wilson",
+      phone: "456-789-0123",
+      email: "emma@example.com"
+    }
+  },
+  {
+    id: "example-item-5",
+    name: "Bike",
+    description: "Red mountain bike with black mudguards",
+    category: "Sports",
+    image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=3270&auto=format&fit=crop",
+    status: "found",
+    isFound: true,
+    dateAdded: new Date(Date.now() - 86400000 * 4).toISOString(), // 4 days ago
+    userId: "exampleUser5",
+    location: "City Park",
+    contact: {
+      name: "David Brown",
+      phone: "567-890-1234",
+      email: "david@example.com"
+    }
   }
 ];
 
@@ -69,26 +104,62 @@ const Home = () => {
   const [protectedFoundItems, setProtectedFoundItems] = useState<Item[]>([]);
   const [foundItems, setFoundItems] = useState<Item[]>([]);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Add example items if none exist
   useEffect(() => {
-    // Get all found items
+    // Get all items
     let allFoundItems = getItems("found");
     const allProtectedItems = getItems("protected");
     
     // If no found items, add example found items
     if (allFoundItems.length === 0) {
-      const itemsToAdd = exampleItems;
-      saveItems(itemsToAdd, "found");
-      allFoundItems = itemsToAdd;
+      // Filter examples to found items only
+      const foundExamples = exampleItems.filter(item => item.status === "found" || item.status === "lost");
+      saveItems(foundExamples, "found");
+      allFoundItems = foundExamples;
       
       // Add protected items as well
-      const protectedExamples = itemsToAdd.filter(item => item.status === "protected");
+      const protectedExamples = exampleItems.filter(item => item.status === "protected");
       if (protectedExamples.length > 0) {
         saveItems(protectedExamples, "protected");
       }
+    } else {
+      // Make sure examples are always included in the stored items
+      // This ensures persistent examples even after user adds their own items
+      let updatedFoundItems = [...allFoundItems];
+      
+      // Check if example items exist, add them if they don't
+      exampleItems.forEach(example => {
+        if (example.status === "found" || example.status === "lost") {
+          if (!allFoundItems.some(item => item.id === example.id)) {
+            updatedFoundItems.push(example);
+          }
+        }
+      });
+      
+      // Save updated found items if we added any examples
+      if (updatedFoundItems.length > allFoundItems.length) {
+        saveItems(updatedFoundItems, "found");
+        allFoundItems = updatedFoundItems;
+      }
+      
+      // Do the same for protected items
+      let updatedProtectedItems = [...allProtectedItems];
+      exampleItems.forEach(example => {
+        if (example.status === "protected") {
+          if (!allProtectedItems.some(item => item.id === example.id)) {
+            updatedProtectedItems.push(example);
+          }
+        }
+      });
+      
+      if (updatedProtectedItems.length > allProtectedItems.length) {
+        saveItems(updatedProtectedItems, "protected");
+      }
     }
 
+    // Filter items for display on home page
     if (user) {
       // Filter out user's own items
       const otherUserFoundItems = allFoundItems.filter(item => item.userId !== user.id);
@@ -105,14 +176,27 @@ const Home = () => {
         !protectedAndFound.some(pItem => pItem.id === item.id)
       ));
     } else {
-      // If no user is logged in, just show example items
-      const protectedExamples = allFoundItems.filter(item => item.status === "protected");
-      const regularExamples = allFoundItems.filter(item => item.status !== "protected");
+      // If no user is logged in, just show all items including examples
+      const protectedExamples = allProtectedItems.filter(item => item.status === "protected");
+      const regularItems = allFoundItems.filter(item => 
+        !protectedExamples.some(pItem => pItem.id === item.id)
+      );
       
       setProtectedFoundItems(protectedExamples);
-      setFoundItems(regularExamples);
+      setFoundItems(regularItems);
     }
   }, [user]);
+
+  const handleContactClick = (itemId: string) => {
+    // Get item details
+    const item = foundItems.find(i => i.id === itemId) || 
+                 protectedFoundItems.find(i => i.id === itemId);
+    
+    if (item && item.userId) {
+      // Navigate to chat with the finder
+      navigate(`/chat/${item.userId}?itemId=${itemId}`);
+    }
+  };
 
   return (
     <div className="container max-w-4xl mx-auto">
@@ -139,7 +223,11 @@ const Home = () => {
           {protectedFoundItems.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {protectedFoundItems.map(item => (
-                <ItemCard key={item.id} item={item} />
+                <ItemCard 
+                  key={item.id} 
+                  item={item} 
+                  onContactClick={handleContactClick}
+                />
               ))}
             </div>
           ) : (
@@ -162,6 +250,7 @@ const Home = () => {
                 <ItemCard 
                   key={item.id} 
                   item={item} 
+                  onContactClick={handleContactClick}
                 />
               ))}
             </div>
