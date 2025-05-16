@@ -5,12 +5,14 @@ import ChatList from "@/components/ChatList";
 import ChatWindow from "@/components/ChatWindow";
 import { mockChats } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Chat = () => {
   const { chatId } = useParams<{ chatId: string }>();
   const [activeChat, setActiveChat] = useState<string | null>(chatId || null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   // Update active chat when URL param changes
   useEffect(() => {
@@ -36,8 +38,6 @@ const Chat = () => {
   
   return (
     <div className="container max-w-6xl mx-auto py-4">
-      <h1 className="text-2xl font-bold mb-6">Conversations</h1>
-      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className={`${activeChat && 'hidden lg:block'}`}>
           <ChatList 

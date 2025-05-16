@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -33,9 +33,8 @@ const App = () => (
               <Route path="my-items" element={<MyItems />} />
               <Route path="found-items" element={<FoundItems />} />
               <Route path="item/:id" element={<ItemDetail />} />
-              <Route path="chat/*" element={<Chat />}>
-                <Route path=":chatId" element={null} />
-              </Route>
+              <Route path="chat" element={<Chat />} />
+              <Route path="chat/:chatId" element={<Chat />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />

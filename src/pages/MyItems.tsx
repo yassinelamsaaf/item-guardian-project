@@ -101,7 +101,6 @@ const MyItems = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Package size={20} className="text-purple-500" />
-          <h1 className="text-2xl font-bold">My Protected Items</h1>
         </div>
         <div className="flex gap-2">
           <Button 

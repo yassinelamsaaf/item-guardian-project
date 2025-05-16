@@ -1,5 +1,5 @@
 
-import { Card, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Chat } from "@/types";
 import { cn } from "@/lib/utils";
@@ -28,10 +28,7 @@ const ChatList = ({ chats, activeChat, onSelectChat, userId }: ChatListProps) =>
   
   return (
     <Card className="h-[600px] overflow-hidden">
-      <CardHeader className="border-b p-4">
-        <h2 className="font-semibold">Conversations</h2>
-      </CardHeader>
-      <div className="overflow-y-auto h-[calc(100%-4rem)]">
+      <div className="overflow-y-auto h-full">
         {chats.length > 0 ? (
           <div>
             {chats.map(chat => {

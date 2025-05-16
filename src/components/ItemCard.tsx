@@ -28,6 +28,34 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
     }
   };
 
+  // Function to determine what icon to display
+  const renderStatusIcons = () => {
+    return (
+      <div className="absolute top-2 right-2 flex gap-1">
+        {/* Protected item icon */}
+        {item.qrCode && (
+          <div className="bg-found-green rounded-full p-1">
+            <Shield size={16} className="text-white" />
+          </div>
+        )}
+        
+        {/* Found item icon */}
+        {status === "found" && (
+          <div className="bg-blue-500 rounded-full p-1">
+            <div className="w-4 h-4 bg-white rounded-full"></div>
+          </div>
+        )}
+        
+        {/* My item icon */}
+        {status === "protected" && item.userId && (
+          <div className="bg-purple-500 rounded-full p-1">
+            <Package size={16} className="text-white" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Link to={`/item/${id}`}>
       <Card className="overflow-hidden transition-all hover:shadow-md">
@@ -37,28 +65,7 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
             alt={name}
             className="h-full w-full object-cover"
           />
-          <div className="absolute top-2 right-2 flex gap-1">
-            {/* Display icons based on status type */}
-            {status === "protected" && item.qrCode && (
-              <div className="bg-found-green rounded-full p-1">
-                <Shield size={16} className="text-white" />
-              </div>
-            )}
-            
-            {/* Display found icon for found items */}
-            {(status === "found" || (status === "protected" && item.isFound)) && (
-              <div className="bg-blue-500 rounded-full p-1">
-                <div className="w-4 h-4 bg-white rounded-full"></div>
-              </div>
-            )}
-            
-            {/* Display "my item" icon for user's own items */}
-            {status === "myitem" && (
-              <div className="bg-purple-500 rounded-full p-1">
-                <Package size={16} className="text-white" />
-              </div>
-            )}
-          </div>
+          {renderStatusIcons()}
         </div>
         <CardContent className="p-4">
           <h3 className="font-semibold text-base mb-1">{name}</h3>
@@ -79,13 +86,11 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
                 "text-xs",
                 status === "protected" ? "bg-found-green hover:bg-found-green/90" : 
                 status === "found" ? "bg-blue-500 hover:bg-blue-600" : 
-                status === "myitem" ? "bg-purple-500 hover:bg-purple-600" :
                 "bg-lost-red hover:bg-lost-red/90"
               )}
             >
               {status === "protected" ? "Protected" : 
-               status === "found" ? "Found" : 
-               status === "myitem" ? "My Item" : "Lost"}
+               status === "found" ? "Found" : "Lost"}
             </Badge>
             
             {(item.status === "found" || (item.status === "protected" && item.isFound)) && item.contact && onContactClick && (
