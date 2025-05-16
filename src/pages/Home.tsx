@@ -189,7 +189,7 @@ const Home = () => {
         <Link to="/my-items">
           <Button className="bg-found-green hover:bg-found-green/90">
             <PlusCircle className="mr-2" size={16} />
-            Add Item
+            Report Item
           </Button>
         </Link>
       </div>

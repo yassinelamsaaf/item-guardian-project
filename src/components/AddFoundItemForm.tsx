@@ -132,7 +132,35 @@ const AddFoundItemForm = ({ onSubmit, onCancel }: AddFoundItemFormProps) => {
       userId: user?.id || "",
     };
     
-    onSubmit(newItem);
+    try {
+      onSubmit(newItem);
+      
+      // Reset form after successful submission
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+        location: "",
+        image: null,
+        qrCode: "",
+        qrCodeImage: null,
+        contact: {
+          name: user?.name || "",
+          phone: user?.phone || "",
+          email: user?.email || "",
+        }
+      });
+      setPreviewUrl("");
+      setQrPreviewUrl("");
+      setIsProtected(false);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Error adding found item",
+        description: "There was a problem reporting this item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -69,7 +69,26 @@ const AddItemForm = ({ onSubmit, onCancel }: AddItemFormProps) => {
       image: previewUrl || "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=3374&auto=format&fit=crop",
     };
     
-    onSubmit(newItem);
+    try {
+      onSubmit(newItem);
+      
+      // Reset form after successful submission
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+        location: "",
+        image: null
+      });
+      setPreviewUrl("");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Error adding item",
+        description: "There was a problem adding your item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

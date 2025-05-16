@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,8 @@ const FoundItems = () => {
   
   const handleAddItem = (newItem: any) => {
     try {
+      console.log("Adding new found item:", newItem);
+      
       // Add the item to localStorage
       const updatedItems = addItem(newItem, "found");
       
@@ -144,7 +145,7 @@ const FoundItems = () => {
       
       {/* Add Found Item Dialog */}
       <Dialog open={isAddingItem} onOpenChange={setIsAddingItem}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Report Found Item</DialogTitle>
             <DialogDescription>
