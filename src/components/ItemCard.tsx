@@ -32,7 +32,7 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
   const renderStatusIcons = () => {
     return (
       <div className="absolute top-2 right-2 flex gap-1">
-        {/* Protected item icon */}
+        {/* Protected item icon (QR Code) */}
         {item.qrCode && (
           <div className="bg-found-green rounded-full p-1">
             <Shield size={16} className="text-white" />
@@ -46,8 +46,8 @@ const ItemCard = ({ item, showStatus = true, onContactClick }: ItemCardProps) =>
           </div>
         )}
         
-        {/* My item icon */}
-        {status === "protected" && item.userId && (
+        {/* My item icon - only for protected (not found) items */}
+        {status === "protected" && !item.isFound && (
           <div className="bg-purple-500 rounded-full p-1">
             <Package size={16} className="text-white" />
           </div>

@@ -11,7 +11,7 @@ import { getItems, saveItems } from "@/utils/storage";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 
-// Example items for the home page
+// Example items for the home page - only found items can appear here
 const exampleItems: Item[] = [
   {
     id: "example-item-1",
@@ -28,24 +28,6 @@ const exampleItems: Item[] = [
       name: "John Smith",
       phone: "123-456-7890",
       email: "john@example.com"
-    }
-  },
-  {
-    id: "example-item-2",
-    name: "House Keys",
-    description: "Set of house keys with a blue keychain found at Central Park",
-    category: "Accessories",
-    image: "https://images.unsplash.com/photo-1582879304271-6f93bd8e8a12?q=80&w=3270&auto=format&fit=crop",
-    status: "protected",
-    isFound: true,
-    dateAdded: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
-    userId: "exampleUser2",
-    location: "Central Park",
-    qrCode: "QR123456",
-    contact: {
-      name: "Alice Johnson",
-      phone: "234-567-8901",
-      email: "alice@example.com"
     }
   },
   {
@@ -66,6 +48,24 @@ const exampleItems: Item[] = [
     }
   },
   {
+    id: "example-item-4",
+    name: "Smartphone with QR Code",
+    description: "Found iPhone with a QR code protection sticker on it",
+    category: "Electronics",
+    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=3280&auto=format&fit=crop",
+    status: "found",
+    isFound: true,
+    qrCode: "QR456123",
+    dateAdded: new Date(Date.now() - 86400000 * 1.5).toISOString(), // 1.5 days ago
+    userId: "exampleUser4",
+    location: "Public Library",
+    contact: {
+      name: "Emma Wilson",
+      phone: "678-901-2345",
+      email: "emma@example.com"
+    }
+  },
+  {
     id: "example-item-5",
     name: "Bike",
     description: "Red mountain bike with black mudguards",
@@ -81,6 +81,24 @@ const exampleItems: Item[] = [
       phone: "567-890-1234",
       email: "david@example.com"
     }
+  },
+  {
+    id: "example-item-6",
+    name: "Headphones with QR Code",
+    description: "Sony WH-1000XM4 headphones with QR protection sticker",
+    category: "Electronics",
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=3270&auto=format&fit=crop",
+    status: "found",
+    isFound: true,
+    qrCode: "QR789012",
+    dateAdded: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
+    userId: "exampleUser6",
+    location: "University Cafeteria",
+    contact: {
+      name: "Sarah Johnson",
+      phone: "789-012-3456",
+      email: "sarah@example.com"
+    }
   }
 ];
 
@@ -93,33 +111,22 @@ const Home = () => {
 
   // Add example items if none exist and ensure they're always included
   useEffect(() => {
-    // Get all items
+    // Get all items - only found items should appear on Home
     let allFoundItems = getItems("found");
-    const allProtectedItems = getItems("protected");
-    const myItems = getItems("protected").filter(item => user && item.userId === user.id);
     
     // If no found items, add example found items
     if (allFoundItems.length === 0) {
       // Filter examples to found items only
-      const foundExamples = exampleItems.filter(item => item.status === "found");
-      saveItems(foundExamples, "found");
-      allFoundItems = foundExamples;
-      
-      // Add protected items as well
-      const protectedExamples = exampleItems.filter(item => item.status === "protected");
-      if (protectedExamples.length > 0) {
-        saveItems(protectedExamples, "protected");
-      }
+      saveItems(exampleItems, "found");
+      allFoundItems = exampleItems;
     } else {
       // Make sure examples are always included in the stored items
       let updatedFoundItems = [...allFoundItems];
       
       // Check if example items exist, add them if they don't
       exampleItems.forEach(example => {
-        if (example.status === "found") {
-          if (!allFoundItems.some(item => item.id === example.id)) {
-            updatedFoundItems.push(example);
-          }
+        if (!allFoundItems.some(item => item.id === example.id)) {
+          updatedFoundItems.push(example);
         }
       });
       
@@ -128,20 +135,6 @@ const Home = () => {
         saveItems(updatedFoundItems, "found");
         allFoundItems = updatedFoundItems;
       }
-      
-      // Do the same for protected items
-      let updatedProtectedItems = [...allProtectedItems];
-      exampleItems.forEach(example => {
-        if (example.status === "protected") {
-          if (!allProtectedItems.some(item => item.id === example.id)) {
-            updatedProtectedItems.push(example);
-          }
-        }
-      });
-      
-      if (updatedProtectedItems.length > allProtectedItems.length) {
-        saveItems(updatedProtectedItems, "protected");
-      }
     }
 
     // Filter items for display on home page
@@ -149,22 +142,19 @@ const Home = () => {
       // Filter out user's own items - items with the current user's ID shouldn't appear
       const otherUserFoundItems = allFoundItems.filter(item => item.userId !== user.id);
       
-      // Get protected items that are also found (but exclude user's own items)
-      const protectedAndFound = allProtectedItems.filter(item => 
-        item.status === "protected" && 
-        item.userId !== user.id
-      );
+      // Separate found items based on whether they have QR code
+      const protectedAndFound = otherUserFoundItems.filter(item => item.qrCode);
+      const regularFound = otherUserFoundItems.filter(item => !item.qrCode);
       
       setProtectedFoundItems(protectedAndFound);
-      setFoundItems(otherUserFoundItems);
+      setFoundItems(regularFound);
     } else {
-      // If no user is logged in, just show all items including examples
-      const protectedExamples = allProtectedItems.filter(item => 
-        !myItems.some(myItem => myItem.id === item.id)
-      );
+      // If no user is logged in, just show all example items
+      const protectedExamples = exampleItems.filter(item => item.qrCode);
+      const regularExamples = exampleItems.filter(item => !item.qrCode);
       
       setProtectedFoundItems(protectedExamples);
-      setFoundItems(allFoundItems);
+      setFoundItems(regularExamples);
     }
   }, [user]);
 
